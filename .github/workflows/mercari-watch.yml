@@ -1,0 +1,47 @@
+name: Mercari Notice Watcher
+
+on:
+  schedule:
+    # 09:00 JST == 00:00 UTC. GitHub Actions cron can be delayed by a
+    # few minutes at busy times; that's expected and harmless here.
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mercari-notice-watcher
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run watcher
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python scrape_mercari_notices.py
+
+      - name: Commit seen.json if changed
+        run: |
+          if git diff --quiet -- seen.json; then
+            echo "No changes to seen.json"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen.json
+          git commit -m "chore: update seen.json [skip ci]"
+          git push
