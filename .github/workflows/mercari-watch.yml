@@ -2,9 +2,9 @@ name: Mercari Notice Watcher
 
 on:
   schedule:
-    # 09:00 JST == 00:00 UTC. GitHub Actions cron can be delayed by a
+        # 09:13 JST == 00:13 UTC. GitHub Actions cron can be delayed by a
     # few minutes at busy times; that's expected and harmless here.
-    - cron: "0 0 * * *"
+    - cron: "13 0 * * *"
   workflow_dispatch: {}
 
 permissions:
